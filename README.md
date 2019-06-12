@@ -6,4 +6,5 @@
 
 ## 类型转换
 
-1. [掌握 JS 类型转换：从清晰的规则开始](https://github.com/deepfunc/js-bullshit-blog/issues/2)
+1. [掌握 JS 类型转换：从规则开始](https://github.com/deepfunc/js-bullshit-blog/issues/2)
+2. [掌握 JS 类型转换：隐式转换救救孩子](https://github.com/deepfunc/js-bullshit-blog/issues/3)
