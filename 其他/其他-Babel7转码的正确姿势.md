@@ -85,7 +85,7 @@ npm install --save-dev @babel/preset-env, @babel/plugin-transform-runtime
 
 
 
-然后这里给大家提供一个小技巧。有时我们会安装配置 @babel/preset-stage-x 去使用一些新的提案，当在 Babel 7 中这些 preset-stage-x 已经被弃用了，我们必须是一个个的安装所需的插件，还得去改 `.babelrc` 的配置，挺烦的。那么我们可以用下面的方法去简化安装，比如 stage-2：
+然后这里给大家提供一个小技巧。有时我们会安装配置 @babel/preset-stage-x 去使用一些新的提案，当在 Babel 7 中这些 preset-stage-x 已经被弃用了，我们必须是一个个的安装所需的插件，还得去改 `.babelrc` 的配置，挺烦的，怎么简化呢？我们可以用下面的方法去简化安装，比如 stage-2：
 
 1. 首先：`npm install --save-dev @babel/preset-stage-2`
 2. 然后：`npx babel-upgrade --write --install`
