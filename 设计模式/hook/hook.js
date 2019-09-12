@@ -23,8 +23,8 @@ function createHook() {
 
   function syncExec(key, ...args) {
     const fns = (_hooks[key] || []).slice();
-
     let idx = 0;
+
     const next = function (...args) {
       if (idx >= fns.length) {
         return (args.length > 1 ? args : args[0]);
@@ -40,6 +40,7 @@ function createHook() {
   function asyncExec(key, ...args) {
     const fns = (_hooks[key] || []).slice();
     let idx = 0;
+
     const next = function (...args) {
       if (idx >= fns.length) {
         return Promise.resolve(args.length > 1 ? args : args[0]);

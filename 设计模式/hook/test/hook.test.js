@@ -101,12 +101,20 @@ describe('hook', function () {
       hook.unregisterAll('process-test');
       hook.register('process-test', function (next) {
         return function (obj) {
-          return next({ count: obj.count + 1 });
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(next({ count: obj.count + 1 }));
+            }, 100);
+          });
         };
       });
       hook.register('process-test', function (next) {
         return function (obj) {
-          return { count: obj.count + 2 };
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(next({ count: obj.count + 2 }));
+            }, 100);
+          });
         };
       });
       return hook.asyncExec('process-test', { count: 66 });
