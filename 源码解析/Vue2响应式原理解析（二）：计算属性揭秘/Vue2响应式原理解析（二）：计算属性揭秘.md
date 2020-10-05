@@ -258,4 +258,4 @@ depend () {
 
 到这里 Vue2 的响应式大体讲的就差不多了。后面还会再写一篇说说侦听属性，然后再回到设计从整体上巩固一下。如果有说的不对或有其他见解欢迎留言讨论哇~
 
-欢迎 star 和关注我的 JS 博客：[小声比比 Javascript](https://github.com/deepfunc/js-bullshit-blog)
+欢迎 star 和关注我的 JS 博客：[小声比比 JavaScript](https://github.com/deepfunc/js-bullshit-blog)

@@ -240,4 +240,4 @@ Object.assign(app, hook);
 
 如果对本篇有疑问或建议，欢迎在 [这里](https://github.com/deepfunc/js-bullshit-blog/issues/5) 提出。
 
-欢迎 star 和关注我的 JS 博客：[小声比比 Javascript](https://github.com/deepfunc/js-bullshit-blog)
+欢迎 star 和关注我的 JS 博客：[小声比比 JavaScript](https://github.com/deepfunc/js-bullshit-blog)

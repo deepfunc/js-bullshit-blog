@@ -251,3 +251,4 @@ set: function reactiveSetter (newVal) {
 
 水平有限，理解和解读难免会有错漏，欢迎指出哇~ 下一篇将写一下计算属性的一些设计、实现和其他部分。
 
+欢迎 star 和关注我的 JS 博客：[小声比比 JavaScript](https://github.com/deepfunc/js-bullshit-blog)

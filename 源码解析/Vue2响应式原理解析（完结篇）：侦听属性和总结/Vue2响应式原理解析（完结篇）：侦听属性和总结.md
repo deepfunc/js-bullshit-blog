@@ -198,4 +198,4 @@ Vue2 响应式实现的一个很赞的地方是把这套东西独立了出来，
 
 到这里 Vue2 响应式我想哔哔的东西已经全部讲完了，希望能给大家一点参考吧，水平有限，理解和解读难免会有错漏，欢迎指出哇。最近 Vue3.0 One Piece 也正式发布了，以后偶也会持续写一些 Vue3 的相关东东，下次再见~
 
-欢迎 star 和关注我的 JS 博客：[小声比比 Javascript](https://github.com/deepfunc/js-bullshit-blog)
+欢迎 star 和关注我的 JS 博客：[小声比比 JavaScript](https://github.com/deepfunc/js-bullshit-blog)

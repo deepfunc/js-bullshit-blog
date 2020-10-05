@@ -1,4 +1,4 @@
-# 小声比比 Javascript
+# 小声比比 JavaScript
 
 谈点自己的理解和总结，我说的都是错的。
 
