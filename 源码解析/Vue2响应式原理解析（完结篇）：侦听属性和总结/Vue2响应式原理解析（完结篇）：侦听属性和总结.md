@@ -127,7 +127,7 @@ vm.$watch('a.b', function (newVal, oldVal) {
 
 vm.$watch(
   function () {
-    return this.c + this.c
+    return this.c + this.d
   },
   function (newVal, oldVal) {
     // 属性 c 改变或者 d 改变都会触发
