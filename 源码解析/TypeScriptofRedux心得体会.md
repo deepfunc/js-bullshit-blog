@@ -1,4 +1,4 @@
-# TypeScript of Redux 心得体会
+# 技巧与思维可兼得——读 TypeScript of Redux 有感
 
 Redux 是一个非常经典的状态管理库，在 2019 年接近年底的时候这个项目用 TypeScript 重写了。网上有很多分析 Redux JavaScript 代码实现的文章，然而 TypeScript 部分的却很少。我在看重写的 TypeScript 代码时发现有很多地方比较有意思，也启发我提炼了一些东西，所以整理成了这篇博客，欢迎一起来讨论和学习。
 
