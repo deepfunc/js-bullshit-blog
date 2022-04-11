@@ -57,7 +57,7 @@ then 的链式调用会返回一个新的 Promise，并且 `then` 中回调的�
 
 ```javascript
 Promise.prototype.then = function (onFulfilled) {
-  // “当前” Promise，对于返回的新 Promise 而言，也是“前一个” Promise。
+  // “当前”Promise，对于返回的新 Promise 而言，也是“前一个”Promise。
   const prev = this;
 
   const promise = new Promise(resolve => {
