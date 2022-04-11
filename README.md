@@ -14,7 +14,7 @@
 ## 设计模式
 
 - [带你撸一个实用的 hook 模块](设计模式/hook/带你撸一个实用的hook模块.md)
-- [手写 Promise 能学到什么？](设计模式/渐进式实现Promise/README.md)
+- [这篇手写 Promise 你一定要康康](设计模式/渐进式实现Promise/README.md)
 
 
 
