@@ -40,13 +40,13 @@ ECMA 规范中把 Promise 微任务分成了两种类型，下面结合规范来
 
 ### NewPromiseReactionJob
 
-当 Promise 决议后执行 `then()` 中注册的回调时，会产生这种微任务。为简化说明，我们先关注这个场景：当前 Promise 已经决议，接着调用了 `then()`，比如这样：
+当 Promise 决议后执行 `then()` 中注册的回调时，或当 `then()` 注册时 Promise 已决议，会产生这种微任务。为简化说明，我们先关注这个场景：当前 Promise 已经决议，接着调用了 `then()`，比如这样：
 
 ```javascript
 Promise.resolve(1).then(res => console.log(res));
 ```
 
-接下来看规范对于 Promise.prototype.then 的描述：
+来看规范对于 Promise.prototype.then 的描述：
 
 ![image-20220523141912669](assets/image-20220523141912669.png)
 
@@ -128,6 +128,8 @@ const microTasks = [
     const handler = () => {
       console.log('2');
     };
+    
+    // resolve then() 返回的新 Promise。
     resolve(handler(2));
   }
 ];
@@ -167,7 +169,7 @@ const microTasks = [
 ];
 ```
 
-注意到 job 3 的内容是会执行 promise1 的 then 回调，则会再产生一个微任务；并且 job 4 执行完后输出变为 `2 3`，也会再产生下一个then 的微任务。job 3 和 4 执行完后微任务队列如下：
+注意到 job 3 的内容是会让 promise1 决议，那么就会执行 promise1 的 then 回调，则会再产生一个微任务；并且 job 4 执行完后输出变为 `2 3`，并让 then() 产生的新 Promise 决议，也会再产生下一个的微任务。job 3 和 4 执行完后微任务队列如下：
 
 ```javascript
 const microTasks = [
@@ -187,7 +189,7 @@ const microTasks = [
 ];
 ```
 
-那么最后的输出结果就是 `2 3 1 4` 啦，可以把以上分析方法放在其他的题目中验证康康。
+那么最后的输出结果就是 `2 3 1 4` 啦，大家可以把以上分析方法放在其他的题目中验证康康是不是对的。
 
 ## 参考资料
 
