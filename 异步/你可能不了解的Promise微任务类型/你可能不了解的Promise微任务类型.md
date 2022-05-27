@@ -46,7 +46,7 @@ ECMA 规范中把 Promise 微任务分成了两种类型，下面结合规范来
 Promise.resolve(1).then(res => console.log(res));
 ```
 
-来看规范对于 Promise.prototype.then 的描述：
+`res => console.log(res)` 就运行在这种微任务中。来看规范对于 Promise.prototype.then 的描述：
 
 ![image-20220523141912669](assets/image-20220523141912669.png)
 
@@ -65,25 +65,26 @@ Promise.resolve(1).then(res => console.log(res));
 
 ### NewPromiseResolveThenableJob
 
-这个微任务类型就是示例题中提到的盲区了。首先注意到 resolve 函数的描述：
+上面那种微任务基本是大家熟知的情况，这个微任务类型就是示例题中提到的盲区了。首先注意到 resolve 函数的描述：
 
 ![image-20220523144711900](assets/image-20220523144711900.png)
 
-如果一个对象的 .then 属性可以被调用（是一个函数），那么这个对象就是 thenable 对象。resolve 的值如果是一个 thenable 对象，就会产生 NewPromiseResolveThenableJob 这种微任务了。接下来看看这个微任务的内容：
+如果一个对象的 `then` 属性可以被调用（是一个函数），那么这个对象就是 `thenable` 对象。调用 `resolve()` 传递的参数值如果是一个 `thenable` 对象，就会产生 NewPromiseResolveThenableJob 这种微任务了。接下来看看这个微任务的内容：
 
 ![image-20220523145138014](assets/image-20220523145138014.png)
 
 大概意思就是这种微任务产生了如下的代码：
 
 ```javascript
-thenable.then(resolve, reject);
+// resovle 和 reject 是调用 resolve(thenable) 时那个 Promise 上的。
+thenable.then(resolve, reject); 
 ```
 
-那么结合第一种微任务，如果 thenable 对象是 Promise，则这个微任务执行后又会产生第一个微任务。为什么要这样做呢？
+那么结合第一种微任务，如果 `thenable` 对象是 Promise，则这个微任务执行后又会产生第一个微任务。为什么要这样做呢？规范上有一段解释：
 
 > This Job uses the supplied thenable and its `then` method to resolve the given promise. This process must take place as a Job to ensure that the evaluation of the `then` method occurs after evaluation of any surrounding code has completed.
 
-我的理解是 thenable 对象的不一定是 Promise 实例，也可能是任何对象；如果是普通对象的话，then 就是同步方法了，那么将其再放入一个微任务中也就是为了保证 then 执行顺序的一致性。
+直接翻译的话大概就是说要等周围的同步代码执行完后才会执行这个。关于这个设计意图，我的理解是考虑到 `thenable` 对象的不一定是 Promise 实例，也可能是用户创建的任何对象；如果这个对象的 `then` 是同步方法，那么这样做就可以保证 `then` 的执行顺序也是在微任务中。
 
 ## 示例题分析
 
@@ -117,7 +118,7 @@ new Promise(resolve => {
   });
 ```
 
-代码执行后，微任务队列内容伪代码如下：
+代码执行后，我们用伪代码来表示下微任务队列的内容：
 
 ```javascript
 const microTasks = [
@@ -129,13 +130,13 @@ const microTasks = [
       console.log('2');
     };
     
-    // resolve then() 返回的新 Promise。
+    // 决议 then() 返回的新 Promise。
     resolve(handler(2));
   }
 ];
 ```
 
-job 1 执行后，产生了新的微任务：
+接着开始执行微任务队列。job 1 执行后，产生了新的微任务 job 3：
 
 ```javascript
 const microTasks = [
@@ -152,7 +153,7 @@ const microTasks = [
 ];
 ```
 
-job 2 执行后，输出了 `2`，并且产生新的微任务：
+job 2 执行后，输出了 `2`，并且产生新的微任务 job 4：
 
 ```javascript
 const microTasks = [
@@ -169,7 +170,7 @@ const microTasks = [
 ];
 ```
 
-注意到 job 3 的内容是会让 promise1 决议，那么就会执行 promise1 的 then 回调，则会再产生一个微任务；并且 job 4 执行完后输出变为 `2 3`，并让 then() 产生的新 Promise 决议，也会再产生下一个的微任务。job 3 和 4 执行完后微任务队列如下：
+注意到 job 3 的内容是会让 promise1 决议，那么就会执行 promise1 的 then 回调，则会再产生一个微任务 job 5；并且 job 4 执行完后输出变为 `2 3`，并让 then() 产生的新 Promise 决议，也会再产生下一个的微任务 job 6：
 
 ```javascript
 const microTasks = [
@@ -190,6 +191,8 @@ const microTasks = [
 ```
 
 那么最后的输出结果就是 `2 3 1 4` 啦，大家可以把以上分析方法放在其他的题目中验证康康是不是对的。
+
+如果对本篇有疑问或建议，欢迎在 [这里](https://github.com/deepfunc/js-bullshit-blog/issues/6) 提出。
 
 ## 参考资料
 
