@@ -38,4 +38,5 @@
 
 ## 其他
 
+- [DOM API 中 Node、Element 和 HTMLElement 的区别](其他/DOM/NodeElementHTMLElement.md)
 - [Babel 7 转码的正确姿势](其他/其他-Babel7转码的正确姿势.md)
