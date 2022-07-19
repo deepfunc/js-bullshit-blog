@@ -53,10 +53,11 @@ interface VNode {
    */
   text: string | undefined;
   
-  // 用于查找已存在的 DOM，以键值对的形式存储在内存中，键为 key，值为 elm。
+  // 用于给已存在的 DOM 提供标识，在同级元素之间必须唯一，有效避免不必要地重建操作。
   key: Key | undefined;
 }
 
+// vnode.data 上的一些设置，class 或者生命周期函数钩子等等。
 interface VNodeData {
   props?: Props;
   attrs?: Attrs;
