@@ -4,7 +4,7 @@ React 和 Vue 中都有虚拟 DOM 的概念，我们应该如何理解和掌握�
 
 > [snabb](https://en.wiktionary.org/wiki/snabb) /snab/，瑞典语，意思是快速的。
 
-调整好舒服的坐姿，打起精神我们要开始啦~ 要学习虚拟 DOM，我们得先知道 DOM 的基础知识和用 JS 直接操作 DOM 的痛点在哪里。
+要学习虚拟 DOM，我们得先知道 DOM 的基础知识和用 JS 直接操作 DOM 的痛点在哪里。
 
 ## DOM 的作用和类型结构
 
@@ -92,7 +92,7 @@ const vnode = h(
 
 ## Snabbdom 的运行流程
 
-先来一张运行流程的简单示例图，先有个流程概念：
+先来一张运行流程的简单示意图：
 
 ![image-20220719154806820](assets/image-20220719154806820.png)
 
@@ -131,7 +131,7 @@ const vnode = h(
   ]
 );
 
-// 传入一个空的元素节点。
+// 传入一个空的元素节点，创建 DOM。
 patch(container, vnode);
 
 const newVnode = h(
@@ -158,9 +158,9 @@ patch(vnode, newVnode);
 2. 通过 `h()` 函数创建初始化 vnode 对象，调用 `patch()` 函数去更新，最后通过 `createElm()` 创建真正的 DOM 对象。
 3. 当需要更新时，创建一个新的 vnode 对象，调用 `patch()` 函数去更新，经过 `patchVnode()` 和 `updateChildren()` 完成本节点和子节点的差异更新。
 
- Snabbdom 是通过模块这种设计来扩展相关属性的更新而不是全部写到核心代码中。那这是如何设计与实现的？接下来就先来康康这个设计的核心内容，Hooks——生命周期函数。
+在讲解具体的创建和更新流程前，先来看看 Snabbdom 中的模块思想。Snabbdom 通过生命周期函数和模块扩展这种设计方式将虚拟 DOM 相关属性的更新代码从核心代码中抽离出来。那这是如何设计与实现的？
 
-## Hooks
+## 生命周期函数和模块
 
 Snabbdom 提供了一系列丰富的生命周期函数也就是钩子函数，这些生命周期函数适用在模块中或者可以直接定义在 vnode 上。比如我们可以在 vnode 上这样定义钩子的执行：
 
