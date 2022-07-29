@@ -302,11 +302,37 @@ export function init(
 
 ## 创建流程
 
+接下来我们以一个实际的例子来看下从虚拟 DOM 到 DOM 对象的创建过程，先看如下的代码：
 
+```javascript
+const patch = init([
+  // 配置需要使用的模块。
+  classModule,
+  propsModule,
+  styleModule,
+  eventListenersModule,
+]);
 
-## 更新流程
+// <div id="container"></div>
+const container = document.getElementById('container');
 
-## patch()
+const vnode = h(
+  'div#container.two.classes',
+  { on: { click: someFn } },
+  [
+    h('span', { style: { fontWeight: 'bold' } }, 'This is bold'),
+    ' and this is just normal text',
+    h('a', { props: { href: '/foo' } }, "I'll take you places!"),
+  ]
+);
+
+// 传入一个空的元素节点，创建 DOM。
+patch(container, vnode);
+```
+
+代码的内容是创建一个 vnode 后，调用 `patch()` 函数，传入一个 DOM 节点和 vnode 后完成挂载过程。
+
+### patch()
 
 接下来我们来康康核心函数 `patch()`，这个函数是在 `init()` 调用后返回的，作用是执行 VNode 的挂载和更新，签名如下：
 
@@ -317,49 +343,25 @@ function patch(oldVnode: VNode | Element | DocumentFragment, vnode: VNode): VNod
 }
 ```
 
-`oldVnode` 参数是旧的 VNode 或 DOM 元素或文档片段，`vnode` 参数是更新后的对象。这里我直接贴出整理的流程描述：
+`oldVnode` 参数是旧的 VNode 或 DOM 元素或文档片段，`vnode` 参数是更新后的对象。这里我们只关注与创建过程相关的代码部分，描述如下：
 
 1. 调用模块上注册的 `pre` 钩子。
+2. 在创建过程中 `oldVnode` 参数是一个 DOM 对象，则将其转换为空的 `vnode` 对象，属性里面记录了 `elm`。这里空的 `vnode` 对象的含义是没有 `data` 和 `children`。
 
-2. 如果 `oldVnode` 是 `Element`，则将其转换为空的 `vnode` 对象，属性里面记录了 `elm`。
+3. 然后调用 `sameVnode()`，判断出 `oldVnode` 和 `vnode` 是不相同的，进入创建逻辑分支。`sameVnode()` 的具体判断逻辑在更新流程里再详细介绍。
+4. 调用 `createElm()` 创建新的 DOM 节点，创建完毕后插入 DOM 节点并删除 `oldVnode` 关联的旧 DOM 节点。这个过程中可能也会有子节点需要插入。所有插入的 vnode 节点都会被放进 `insertedVnodeQueue` 队列中。
+5. 遍历调用 `insertedVnodeQueue` 中插入的 vnode 对象的 `insert` 钩子。为什么在这里才统一调用而不在上一步的插入 DOM 节点后直接调用呢？在 `createElm()` 中再来解释这一点。
+6. 最后调用模块上注册的 `post` 钩子。
 
-   这里判断是不是 `Element` 是判断 `(oldVnode as any).nodeType === 1` 是完成的，`nodeType === 1` 表明是一个 ELEMENT_NODE，定义在 [这里](https://developer.mozilla.org/zh-CN/docs/Web/API/Node/nodeType)。
+接下来看下 `createElm()` 是如何创建 DOM 节点的。
 
-3. 然后判断 `oldVnode` 和 `vnode` 是不是相同的，这里会调用 `sameVnode()` 来判断：
+### createElm()
 
-   ```typescript
-   function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
-     // 同样的 key。
-     const isSameKey = vnode1.key === vnode2.key;
-     
-     // Web component，自定义元素标签名，看这里：
-     // https://developer.mozilla.org/zh-CN/docs/Web/API/Document/createElement
-     const isSameIs = vnode1.data?.is === vnode2.data?.is;
-     
-     // 同样的选择器。
-     const isSameSel = vnode1.sel === vnode2.sel;
-   
-     // 三者都相同即是相同的。
-     return isSameSel && isSameKey && isSameIs;
-   }
-   ```
-
-   - 如果相同，则调用 `patchVnode()` 做 diff 更新。
-   - 如果不同，则调用 `createElm()` 创建新的 DOM 节点；创建完毕后插入 DOM 节点并删除旧的 DOM 节点。
-
-4. 调用上述操作中涉及的 vnode 对象中注册的 `insert` 钩子队列， `patchVnode()` `createElm()` 都可能会有新节点插入 。至于为什么这样做，在 `createElm()` 中会说到。
-
-5. 最后调用模块上注册的 `post` 钩子。
-
-流程基本就是相同的 vnode 就做 diff，不同的就创建新的删除旧的。接下来先看下 `createElm()` 是如何创建 DOM 节点的。
-
-## createElm()
-
-`createElm()` 是根据 vnode 的配置来创建 DOM 节点。流程如下：
+`createElm()` 的详细处理过程如下：
 
 1. 调用 vnode 对象上可能存在的 `init` 钩子。
 
-2. 然后分一下几种情况来处理：
+2. 然后分以下几种情况来处理：
 
    1. 如果 `vnode.sel === '!'`，这是 Snabbdom 用来删除原节点的方法，这样会新插入一个注释节点。因为在 `createElm()` 后会删除老节点，所以这样设置就可以达到卸载的目的。
 
@@ -376,17 +378,77 @@ function patch(oldVnode: VNode | Element | DocumentFragment, vnode: VNode): VNod
 
          2. 如果 `children` 不是数组但 `vnode.text` 存在，说明这个元素的内容是个文本，这个时候调用 `createTextNode` 创建文本节点并挂载到 `vnode.elm` 下。
 
-      5. 调用 vnode 上的 `create` 钩子。并将 vnode 上的 `insert` 钩子加入到  `insert` 钩子队列。
+      5. 调用 vnode 上的 `create` 钩子。如果 vnode 上定义了 `insert` 钩子，则将 vnode 加入到  `insertedVnodeQueue` 队列中。
 
    3. 剩下的情况就是 `vnode.sel` 不存在，说明节点本身是文本，那就调用 `createTextNode` 创建文本节点并记录到 `vnode.elm`。
 
 3. 最后返回 `vnode.elm`。
 
-整个过程可以看出 `createElm()` 是根据 `sel` 选择器的不同设置来选择如何创建 DOM 节点。这里有个细节是补一下： `patch()` 中提到的 `insert` 钩子队列。需要这个 `insert` 钩子队列的原因是需要等到 DOM 真正被插入后才执行，而且也要等到所有子孙节点都插入完成，这样我们可以在 `insert` 中去计算元素的大小位置信息才是准确的。结合上面创建子节点的过程，`createElm()` 创建子节点是递归调用，所以队列会先记录子节点，再记录自身。这样在 `patch()` 的结尾执行这个队列时就可以保证这个顺序。
+总的来说，`createElm()` 是根据 `sel` 选择器的不同设置来选择如何创建 DOM 节点。这里具体说明一下 `insertedVnodeQueue` 队列的作用。需要这个队列的原因是要等到所有子孙节点都插入完成后才调用 `insert`，这样我们可以在 `insert` 中去计算元素的大小位置信息才是准确的。结合上面创建子节点的过程，`createElm()` 创建子节点是递归调用，所以队列会先记录子节点，再记录自身。这样在 `patch()` 的结尾执行这个队列时就可以保证这个顺序。
 
-## patchVnode()
+## 更新流程
 
-接下来我们来看 Snabbdom 如何用 `patchVnode()` 来做 diff 的，这是虚拟 DOM 的核心。`patchVnode()` 的处理流程如下：
+更新的代码如下：
+
+```javascript
+// ...
+
+const vnode = h(
+  'div#container.two.classes',
+  { on: { click: someFn } },
+  [
+    h('span', { style: { fontWeight: 'bold' } }, 'This is bold'),
+    ' and this is just normal text',
+    h('a', { props: { href: '/foo' } }, "I'll take you places!"),
+  ]
+);
+
+// 传入一个空的元素节点，创建 DOM。
+patch(container, vnode);
+
+// 创建一个新的 vnode。
+const newVnode = h(
+  'div#container.two.classes',
+  { on: { click: anotherEventHandler } },
+  [
+    h(
+      'span',
+      { style: { fontWeight: 'normal', fontStyle: 'italic' } },
+      'This is now italic type'
+    ),
+    ' and this is still just normal text',
+    h('a', { props: { href: ''/bar' } }, "I'll take you places!"),
+  ]
+);
+
+// 再次调用 patch()，将旧节点更新为新节点。
+patch(vnode, newVnode);
+```
+
+首先依然会先调用 `patch()`，我们主要关注与创建流程中的不同点。在 `patch()` 中调用 `sameVnode()` 会发现 `oldVnode` 和 `vnode` 是相同的，`sameVnode()` 的具体代码如下：
+
+```javascript
+function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
+  // 同样的 key。
+  const isSameKey = vnode1.key === vnode2.key;
+  
+  // Web component，自定义元素标签名，看这里：
+  // https://developer.mozilla.org/zh-CN/docs/Web/API/Document/createElement
+  const isSameIs = vnode1.data?.is === vnode2.data?.is;
+  
+  // 同样的选择器。
+  const isSameSel = vnode1.sel === vnode2.sel;
+
+  // 三者都相同即是相同的。
+  return isSameSel && isSameKey && isSameIs;
+}
+```
+
+接下来会调用 `patchVnode()` 做 diff 更新。
+
+### patchVnode()
+
+`patchVnode()` 是虚拟 DOM 的核心函数，具体处理流程如下：
 
 1. 首先执行 vnode 上 `prepatch` 钩子。
 2. 如果 oldVnode 和 vnode 是同一个对象引用，则不处理直接返回。
@@ -492,4 +554,4 @@ function patch(oldVnode: VNode | Element | DocumentFragment, vnode: VNode): VNod
 
 ## 总结
 
-到这里虚拟 DOM 的核心内容已经梳理完毕，[Snabbdom](https://github.com/snabbdom/snabbdom) 的设计和实现原理我觉得挺好的，大家有空可以去康康源码的细节再细品下，其中的思想很值得学习。
+到这里虚拟 DOM 的工作原理和核心内容已经梳理完毕了， 大家有空可以去康康 [Snabbdom](https://github.com/snabbdom/snabbdom) 源码的细节再细品下，其中的设计思想和实现很值得学习。
